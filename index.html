@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大学英语成绩查询系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 900px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, rgba(26, 42, 108, 0.1), rgba(178, 31, 31, 0.1));
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header h1 {
+            color: #1a2a6c;
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header p {
+            color: #555;
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .search-box {
+            background: linear-gradient(to right, #f5f7fa, #e4edf9);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .search-box h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+        
+        .input-group {
+            display: flex;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 50px 0 0 50px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus {
+            border-color: #1a2a6c;
+            box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.2);
+        }
+        
+        .input-group button {
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 0 50px 50px 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .input-group button:hover {
+            background: linear-gradient(to right, #0f1a4a, #8a1818);
+            transform: translateY(-2px);
+        }
+        
+        .result-section {
+            display: none;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .student-info {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed #eaeaea;
+        }
+        
+        .student-info h2 {
+            color: #1a2a6c;
+            margin-bottom: 10px;
+            font-size: 26px;
+        }
+        
+        .student-info .id {
+            background-color: #eef5ff;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            color: #1a2a6c;
+            font-weight: bold;
+        }
+        
+        .grades-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .grade-card {
+            background: linear-gradient(to bottom right, #f8f9ff, #e6eeff);
+            border-radius: 10px;
+            padding: 20px;
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        
+        .grade-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        
+        .grade-card h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .grade-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1a2a6c;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .grade-missing {
+            color: #e74c3c !important;
+        }
+        
+        .grade-comment {
+            font-size: 14px;
+            color: #777;
+            font-style: italic;
+        }
+        
+        .total-grade {
+            background: linear-gradient(to bottom right, #1a2a6c, #b21f1f);
+            color: white !important;
+        }
+        
+        .total-grade h3 {
+            color: white !important;
+        }
+        
+        .total-grade .grade-value {
+            color: white !important;
+        }
+        
+        .note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #1a2a6c;
+            padding: 15px;
+            margin-top: 25px;
+            border-radius: 0 5px 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .note h4 {
+            margin-bottom: 8px;
+            color: #1a2a6c;
+        }
+        
+        .error-message {
+            text-align: center;
+            color: #e74c3c;
+            padding: 20px;
+            background-color: #fdeded;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #777;
+            font-size: 14px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .input-group input {
+                border-radius: 50px;
+                margin-bottom: 10px;
+            }
+            
+            .input-group button {
+                border-radius: 50px;
+                padding: 15px;
+            }
+            
+            .grades-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>大学英语成绩查询系统</h1>
+            <p>请输入您的学号查询2023-2024学年第二学期的英语成绩，系统将显示您的平时成绩、期末成绩和总评成绩</p>
+        </div>
+        
+        <div class="search-box">
+            <h2>成绩查询</h2>
+            <div class="input-group">
+                <input type="text" id="student-id" placeholder="请输入您的学号" maxlength="8">
+                <button id="search-btn">查询成绩</button>
+            </div>
+        </div>
+        
+        <div class="error-message" id="error-message">
+            未找到该学号的成绩信息，请检查学号是否正确
+        </div>
+        
+        <div class="result-section" id="result-section">
+            <div class="student-info">
+                <h2 id="student-name">学生姓名</h2>
+                <span class="id">学号: <span id="student-id-display">20230000</span></span>
+            </div>
+            
+            <div class="grades-container">
+                <div class="grade-card">
+                    <h3>平时总成绩 (50%)</h3>
+                    <span class="grade-value" id="daily-grade">0</span>
+                    <p class="grade-comment">课堂表现、作业、小测验等</p>
+                </div>
+                
+                <div class="grade-card">
+                    <h3>期末考试 (50%)</h3>
+                    <span class="grade-value" id="exam-grade">0</span>
+                    <p class="grade-comment">期末考试成绩</p>
+                </div>
+                
+                <div class="grade-card total-grade">
+                    <h3>总评成绩 (100%)</h3>
+                    <span class="grade-value" id="total-grade">0</span>
+                    <p class="grade-comment">综合评定成绩</p>
+                </div>
+            </div>
+            
+            <div class="note">
+                <h4>成绩说明：</h4>
+                <p>1. 平时成绩占比50%，期末考试成绩占比50%，构成最终总评成绩</p>
+                <p>2. "缺考"表示未参加考试，"缓考"表示已申请延期考试</p>
+                <p>3. 如有疑问，请联系任课教师：english_department@university.edu</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2024 大学英语教研中心 | 数据更新时间: 2024年7月</p>
+        </footer>
+    </div>
+
+    <script>
+        // 模拟数据库 - 学生成绩数据
+        const studentData = [
+            // 2023级c甲05班
+            {id: "20201789", name: "郝志远", daily: 0, exam: "缺考", total: "缺考"},
+            {id: "20211368", name: "韦一冰", daily: 77, exam: 63, total: 70},
+            {id: "20223200", name: "范志超", daily: 73, exam: 74, total: 73},
+            {id: "20230755", name: "特列吾别尔德·托汗", daily: 62, exam: 71, total: 66},
+            {id: "20230971", name: "农东路", daily: 77, exam: 74, total: 75},
+            {id: "20230980", name: "刘权宽", daily: 88, exam: 59, total: 73},
+            {id: "20230991", name: "韩美玉", daily: 73, exam: 63, total: 68},
+            {id: "20231029", name: "马斌", daily: 82, exam: 56, total: 69},
+            {id: "20231047", name: "马香梅", daily: 76, exam: 71, total: 73},
+            {id: "20231048", name: "马蕾", daily: 98, exam: 32, total: 65},
+            {id: "20231062", name: "谢俊锋", daily: 69, exam: 52, total: 60},
+            {id: "20231085", name: "史书涵", daily: 97, exam: 50, total: 73},
+            {id: "20231138", name: "琼达", daily: 87, exam: 38, total: 63},
+            {id: "20231222", name: "土旦群培", daily: 97, exam: 49, total: 73},
+            {id: "20231223", name: "肖磊", daily: 6, exam: "缺考", total: 3},
+            {id: "20231228", name: "李双扬", daily: 80, exam: 81, total: 80},
+            {id: "20232106", name: "苏热艳·马合木提", daily: 92, exam: 59, total: 75},
+            {id: "20232107", name: "哈力阿·因特马克", daily: 98, exam: 53, total: 75},
+            {id: "20232108", name: "舒阿克·乌玉斯别克", daily: 99, exam: 50, total: 74},
+            {id: "20232116", name: "马秀梅", daily: 84, exam: 64, total: 74},
+            {id: "20232184", name: "马婧", daily: 85, exam: 70, total: 78},
+            {id: "20232186", name: "罗启明", daily: 63, exam: 67, total: 65},
+            {id: "20232230", name: "蒋棋", daily: 95, exam: 75, total: 85},
+            {id: "20232267", name: "代欣予", daily: 88, exam: 51, total: 69},
+            {id: "20232288", name: "董启炜", daily: 76, exam: 74, total: 75},
+            {id: "20232289", name: "王欢", daily: 85, exam: 83, total: 84},
+            {id: "20232304", name: "普桑", daily: 75, exam: 68, total: 71},
+            {id: "20232305", name: "李文彤", daily: 72, exam: 50, total: 61},
+            {id: "20232311", name: "古丽则巴·依马木艾山", daily: 96, exam: 59, total: 77},
+            {id: "20232323", name: "孟嗣博", daily: 74, exam: 49, total: 61},
+            {id: "20232325", name: "高孟恩", daily: 72, exam: 79, total: 75},
+            {id: "20232326", name: "郑显威", daily: 88, exam: 63, total: 75},
+            {id: "20232403", name: "马丽娅", daily: 85, exam: 56, total: 70},
+            {id: "20232405", name: "马智", daily: 77, exam: 62, total: 70},
+            {id: "20232408", name: "马学俊", daily: 92, exam: 61, total: 76},
+            {id: "20232417", name: "符雪夏", daily: 85, exam: 59, total: 72},
+            {id: "20232418", name: "李菲菲", daily: 91, exam: 77, total: 84},
+            {id: "20232426", name: "佘嘉辉", daily: 81, exam: 68, total: 74},
+            {id: "20232431", name: "古丽迪尔阿依·玉苏甫", daily: 88, exam: "缓考", total: 44},
+            {id: "20232459", name: "裴雅楠", daily: 91, exam: 71, total: 81},
+            {id: "20232488", name: "向秋卓玛", daily: 89, exam: 62, total: 75},
+            {id: "20232489", name: "央金", daily: 94, exam: 68, total: 81},
+            {id: "20232491", name: "顿珠措姆", daily: 89, exam: 61, total: 75},
+            {id: "20232645", name: "马小雪", daily: 78, exam: 62, total: 70},
+            {id: "20232756", name: "孜叶尔德叶·叶尔兰", daily: 54, exam: 33, total: 44},
+            {id: "20232865", name: "陶雪", daily: 91, exam: 76, total: 83},
+            {id: "20233319", name: "喇玉花", daily: 82, exam: 79, total: 80},
+            {id: "20233356", name: "王婷婷", daily: 92, exam: 71, total: 81},
+            {id: "20233406", name: "李兴兴", daily: 97, exam: 77, total: 87},
+            {id: "20233424", name: "宋炘眙", daily: 93, exam: 73, total: 83},
+            {id: "20233454", name: "谭文佩", daily: 74, exam: 48, total: 61},
+            {id: "20233553", name: "张贵英", daily: 80, exam: 66, total: 73},
+            {id: "20234241", name: "杜光瑞", daily: 65, exam: 65, total: 65},
+            {id: "20234252", name: "李简", daily: 96, exam: 87, total: 91},
+            {id: "20234341", name: "四朗江村", daily: 68, exam: 51, total: 59},
+            {id: "20234394", name: "都曼·马克沙提", daily: 79, exam: 44, total: 61},
+            {id: "20234413", name: "刘卓然", daily: 63, exam: 67, total: 65},
+            {id: "20234488", name: "次仁措姆", daily: 77, exam: 47, total: 62},
+            {id: "20234528", name: "韩智慧", daily: 63, exam: 43, total: 53},
+            {id: "20234529", name: "看着才让", daily: 80, exam: 64, total: 72},
+            {id: "20234531", name: "许艳铭", daily: 78, exam: 56, total: 67},
+            {id: "20234573", name: "德吉白珍", daily: 79, exam: 64, total: 71},
+            {id: "20235146", name: "何晓东", daily: 88, exam: 53, total: 71},
+            {id: "20235188", name: "伊力哈木江·奥布力喀斯木", daily: 75, exam: 60, total: 67},
+            {id: "20235197", name: "麦尔丹·麦麦提", daily: 70, exam: 55, total: 63},
+            {id: "20235199", name: "塞比耶·艾尼", daily: 84, exam: 61, total: 73},
+            {id: "20235210", name: "如克叶·塔依尔", daily: 64, exam: 72, total: 68},
+            {id: "20235237", name: "努尔菲亚·肉斯坦木", daily: 77, exam: 43, total: 60},
+            {id: "20235245", name: "古丽帕热·买买提吐尔干", daily: 84, exam: 71, total: 77},
+            {id: "20235257", name: "娜孜叶尔克·叶尔波尔", daily: 84, exam: 69, total: 77},
+            {id: "20235279", name: "阿卜杜瓦日斯·巴柯", daily: 60, exam: 59, total: 59},
+            {id: "20235318", name: "阿孜古丽·艾比布", daily: 77, exam: 73, total: 75},
+            
+            // 2023级c乙05班
+            {id: "20215236", name: "牛昱翔", daily: 60, exam: 77, total: 68},
+            {id: "20234720", name: "张梅", daily: 78, exam: 56, total: 67},
+            {id: "20234723", name: "李炜祯", daily: 71, exam: 51, total: 61},
+            {id: "20234732", name: "马盈盈", daily: 97, exam: 68, total: 82},
+            {id: "20234751", name: "谢曼平", daily: 74, exam: 73, total: 73},
+            {id: "20234757", name: "范振强", daily: 96, exam: 70, total: 83},
+            {id: "20234768", name: "林明扬", daily: 80, exam: 51, total: 66},
+            {id: "20234769", name: "李炳涛", daily: 72, exam: 36, total: 54},
+            {id: "20234770", name: "盛晓钰", daily: 99, exam: 81, total: 90},
+            {id: "20234772", name: "姚博", daily: 93, exam: 57, total: 75},
+            {id: "20234777", name: "于文超", daily: 67, exam: 42, total: 54},
+            {id: "20234779", name: "韩玉通", daily: 63, exam: 60, total: 61},
+            {id: "20234785", name: "李勇仪", daily: 75, exam: 45, total: 60},
+            {id: "20234786", name: "蔺雨佳", daily: 84, exam: 38, total: 61},
+            {id: "20234796", name: "毛伟", daily: 95, exam: 36, total: 65},
+            {id: "20234797", name: "杜正力", daily: 92, exam: 44, total: 68},
+            {id: "20234800", name: "师雅琪", daily: 82, exam: 65, total: 73},
+            {id: "20234810", name: "刘耀仁", daily: 80, exam: 66, total: 73},
+            {id: "20234812", name: "刘文卓", daily: 97, exam: 81, total: 89},
+            {id: "20234821", name: "潘金鹏", daily: 86, exam: 59, total: 73},
+            {id: "20234822", name: "赵童心", daily: 89, exam: 66, total: 77},
+            {id: "20234827", name: "梁诗雨", daily: 86, exam: 61, total: 73},
+            {id: "20234842", name: "马腾晖", daily: 16, exam: 46, total: 31},
+            {id: "20234846", name: "陈奕翰", daily: 85, exam: 74, total: 79},
+            {id: "20234847", name: "冯鸣涛", daily: 92, exam: 53, total: 72},
+            {id: "20234850", name: "王馨潼", daily: 76, exam: 74, total: 75},
+            {id: "20234870", name: "兰娅雯", daily: 86, exam: 56, total: 71},
+            {id: "20234877", name: "瞿楠海", daily: 72, exam: 48, total: 60},
+            {id: "20234881", name: "马叶沙", daily: 91, exam: 72, total: 81},
+            {id: "20234883", name: "章宇轩", daily: 79, exam: 39, total: 59},
+            {id: "20234886", name: "吴欣荣", daily: 88, exam: 89, total: 88},
+            {id: "20234901", name: "山丽彤", daily: 98, exam: 50, total: 74},
+            {id: "20234905", name: "马天一", daily: 48, exam: 14, total: 31},
+            {id: "20234906", name: "兰俊杰", daily: 5, exam: "缓考", total: "缓考"},
+            {id: "20234907", name: "高浩宇", daily: 40, exam: "缺考", total: "缺考"},
+            {id: "20234908", name: "张涛", daily: 45, exam: "缓考", total: "缓考"},
+            {id: "20234909", name: "张博", daily: 5, exam: "缺考", total: "缺考"},
+            {id: "20234923", name: "郑佳", daily: 52, exam: 30, total: 41},
+            {id: "20234937", name: "潘金悦", daily: 58, exam: 44, total: 51},
+            {id: "20234939", name: "么梦晗", daily: 99, exam: 83, total: 91},
+            {id: "20234947", name: "孙亚鹏", daily: 31, exam: "缓考", total: "缓考"},
+            {id: "20234948", name: "范广宝", daily: 5, exam: "缺考", total: "缺考"},
+            {id: "20234949", name: "蒋文博", daily: 11, exam: "缓考", total: "缓考"},
+            {id: "20234951", name: "次旺拉姆", daily: 41, exam: 5, total: 23},
+            {id: "20234957", name: "李晨曦", daily: 93, exam: 86, total: 90},
+            {id: "20234958", name: "李湉蕊", daily: 81, exam: 40, total: 61},
+            {id: "20234961", name: "冯羿鸣", daily: 61, exam: "缓考", total: "缓考"},
+            {id: "20234971", name: "李勖", daily: 74, exam: 46, total: 60},
+            {id: "20234977", name: "武玉博", daily: 64, exam: 45, total: 54},
+            {id: "20234993", name: "宋雨雨", daily: 86, exam: 59, total: 72},
+            {id: "20234995", name: "杨乐", daily: 87, exam: 32, total: 59},
+            {id: "20234996", name: "高雅琪", daily: 74, exam: 46, total: 60},
+            {id: "20235024", name: "梁顺堂", daily: 73, exam: 77, total: 75},
+            {id: "20235028", name: "刘津宏", daily: 98, exam: 76, total: 87},
+            {id: "20235031", name: "杨龙岩", daily: 74, exam: 54, total: 64},
+            {id: "20235033", name: "杨奥敏", daily: 55, exam: 54, total: 54},
+            {id: "20235039", name: "刘旭辉", daily: 32, exam: "缺考", total: "缺考"},
+            {id: "20235047", name: "师云蝶", daily: 80, exam: 44, total: 62},
+            {id: "20235053", name: "罗璇", daily: 72, exam: 35, total: 54},
+            {id: "20235058", name: "赵子雷", daily: 91, exam: 54, total: 72},
+            {id: "20235060", name: "闫卓航", daily: 95, exam: 70, total: 82},
+            {id: "20235062", name: "巩凯路", daily: 32, exam: "缺考", total: "缺考"},
+            {id: "20235068", name: "杨帅", daily: 81, exam: 71, total: 76},
+            {id: "20235073", name: "贺凤明", daily: 92, exam: 42, total: 67},
+            {id: "20235075", name: "鲍晨晨", daily: 91, exam: 77, total: 84},
+            {id: "20235077", name: "李纶静怡", daily: 90, exam: 76, total: 83},
+            
+            // 2024级c甲04班
+            {id: "20243685", name: "王斌", daily: 83, exam: 37, total: 60},
+            {id: "20243686", name: "李昂", daily: 79, exam: 61, total: 70},
+            {id: "20243687", name: "姜智怀", daily: 84, exam: 62, total: 73},
+            {id: "20243688", name: "胡振宇", daily: 88, exam: 50, total: 69},
+            {id: "20243689", name: "朱明卓", daily: 75, exam: 86, total: 80},
+            {id: "20243690", name: "刘梦瑶", daily: 98, exam: 78, total: 88},
+            {id: "20243691", name: "杨令琛", daily: 93, exam: 59, total: 76},
+            {id: "20243692", name: "姜绍松", daily: 77, exam: 45, total: 61},
+            {id: "20243693", name: "贺鹏春", daily: 80, exam: 53, total: 66},
+            {id: "20243694", name: "徐俊翔", daily: 81, exam: 40, total: 60},
+            {id: "20243695", name: "潘子墨", daily: 96, exam: 72, total: 84},
+            {id: "20243696", name: "杨宇轩", daily: 82, exam: 60, total: 71},
+            {id: "20243698", name: "蒋懿桁", daily: 84, exam: 72, total: 78},
+            {id: "20243699", name: "刘银庄", daily: 70, exam: 76, total: 73},
+            {id: "20243700", name: "苏应珑", daily: 95, exam: 88, total: 91},
+            {id: "20243701", name: "刘文全", daily: 75, exam: 49, total: 62},
+            {id: "20243702", name: "杨帆", daily: 81, exam: 52, total: 66},
+            {id: "20243703", name: "刘欣", daily: 97, exam: 57, total: 77},
+            {id: "20243704", name: "李宇昊", daily: 74, exam: 45, total: 59},
+            {id: "20243705", name: "谭铭灿", daily: 87, exam: 44, total: 65},
+            {id: "20243706", name: "管少童", daily: 80, exam: 62, total: 71},
+            {id: "20243707", name: "高可昊", daily: 76, exam: 60, total: 68},
+            {id: "20243708", name: "马玉", daily: 69, exam: 68, total: 68},
+            {id: "20243709", name: "杨旭涛", daily: 65, exam: 62, total: 64},
+            {id: "20243710", name: "娄焱艳", daily: 92, exam: 57, total: 74},
+            {id: "20243711", name: "撒琴", daily: 96, exam: 79, total: 87},
+            {id: "20243712", name: "邓成杉", daily: 95, exam: 63, total: 79},
+            {id: "20243713", name: "张健豪", daily: 82, exam: 64, total: 73},
+            {id: "20243714", name: "张一铭", daily: 81, exam: 69, total: 75},
+            {id: "20243715", name: "王桐", daily: 82, exam: 38, total: 60},
+            {id: "20243716", name: "阿子司远", daily: 72, exam: 62, total: 67},
+            {id: "20243717", name: "张小军", daily: 97, exam: 71, total: 84},
+            {id: "20243718", name: "郭玉峰", daily: 74, exam: 28, total: 51},
+            {id: "20243719", name: "谢大卫", daily: 64, exam: 40, total: 52},
+            {id: "20243720", name: "周凯", daily: 85, exam: 58, total: 71},
+            {id: "20243721", name: "买嘉兴", daily: 82, exam: 50, total: 66},
+            {id: "20243722", name: "宿洋", daily: 81, exam: 57, total: 69},
+            {id: "20243723", name: "徐有杰", daily: 80, exam: 54, total: 67},
+            {id: "20243724", name: "李浩", daily: 82, exam: 40, total: 61},
+            {id: "20243725", name: "张宁", daily: 74, exam: 31, total: 53},
+            {id: "20243726", name: "周宇棚", daily: 83, exam: 78, total: 81},
+            {id: "20243727", name: "仇伟华", daily: 87, exam: 72, total: 80},
+            {id: "20243729", name: "李泓霖", daily: 94, exam: 86, total: 90},
+            {id: "20243730", name: "马建平", daily: 88, exam: 80, total: 84},
+            {id: "20243731", name: "李锦豪", daily: 81, exam: 78, total: 79},
+            {id: "20243732", name: "刘子杨", daily: 73, exam: 46, total: 60},
+            {id: "20243733", name: "李文博", daily: 77, exam: 42, total: 60},
+            {id: "20243734", name: "覃铭金", daily: 77, exam: 65, total: 71},
+            {id: "20243735", name: "糟小娟", daily: 98, exam: 73, total: 85},
+            {id: "20243737", name: "龙琦源", daily: 75, exam: 71, total: 73},
+            {id: "20243739", name: "廖云", daily: 78, exam: 63, total: 70},
+            {id: "20243740", name: "梁盛", daily: 72, exam: 55, total: 63},
+            {id: "20243741", name: "任贺清", daily: 81, exam: 56, total: 68},
+            {id: "20243742", name: "张博文", daily: 77, exam: 26, total: 51},
+            {id: "20243743", name: "于德伟", daily: 94, exam: 70, total: 82},
+            {id: "20243744", name: "孙立猛", daily: 82, exam: 24, total: 53},
+            
+            // 2024级c乙10班
+            {id: "20211767", name: "王嘉俊", daily: 71, exam: 81, total: 76},
+            {id: "20240033", name: "邵万祥", daily: 80, exam: 45, total: 62},
+            {id: "20240041", name: "潘建华", daily: 71, exam: 48, total: 59},
+            {id: "20240047", name: "马小龙", daily: 87, exam: 75, total: 81},
+            {id: "20240058", name: "李浩宇", daily: 90, exam: 48, total: 69},
+            {id: "20240068", name: "蒋振兴", daily: 89, exam: 87, total: 88},
+            {id: "20240089", name: "何长发", daily: 81, exam: 55, total: 68},
+            {id: "20240101", name: "王东", daily: 80, exam: 71, total: 75},
+            {id: "20240116", name: "杨云飞", daily: 71, exam: 58, total: 64},
+            {id: "20240183", name: "冯成", daily: 91, exam: 60, total: 76},
+            {id: "20240207", name: "黎润钊", daily: 43, exam: 59, total: 51},
+            {id: "20240234", name: "陈章毅", daily: 84, exam: 53, total: 68},
+            {id: "20240246", name: "牛文博", daily: 85, exam: 74, total: 79},
+            {id: "20240258", name: "杨永杰", daily: 83, exam: 58, total: 70},
+            {id: "20240264", name: "马文轩", daily: 87, exam: 77, total: 82},
+            {id: "20240279", name: "刘明洋", daily: 84, exam: 35, total: 59},
+            {id: "20240325", name: "孙倩", daily: 97, exam: 40, total: 69},
+            {id: "20240341", name: "郭文阳", daily: 67, exam: 72, total: 69},
+            {id: "20240373", name: "邹亮", daily: 80, exam: 81, total: 81},
+            {id: "20240403", name: "白康宁", daily: 72, exam: 57, total: 65},
+            {id: "20240465", name: "马海龙", daily: 94, exam: 83, total: 88},
+            {id: "20240521", name: "王太煌", daily: 85, exam: 76, total: 80},
+            {id: "20240564", name: "孙浩", daily: 75, exam: 75, total: 75},
+            {id: "20240611", name: "黄云钊", daily: 83, exam: 66, total: 74},
+            {id: "20240703", name: "刘智博", daily: 97, exam: 76, total: 86},
+            {id: "20240716", name: "关志豪", daily: 93, exam: 79, total: 86},
+            {id: "20240790", name: "张振鑫", daily: 77, exam: 59, total: 68},
+            {id: "20240828", name: "常昊冉", daily: 73, exam: 57, total: 65},
+            {id: "20240831", name: "曲万鑫", daily: 84, exam: 65, total: 74},
+            {id: "20240833", name: "史国鑫", daily: 79, exam: 47, total: 63},
+            {id: "20240878", name: "马学峰", daily: 34, exam: 55, total: 45},
+            {id: "20240903", name: "吴奇", daily: 81, exam: 62, total: 71},
+            {id: "20240941", name: "尹佳能", daily: 56, exam: 58, total: 57},
+            {id: "20240956", name: "柏震離", daily: 79, exam: 41, total: 60},
+            {id: "20240979", name: "高峰", daily: 80, exam: 64, total: 72},
+            {id: "20241019", name: "李小川", daily: 74, exam: 57, total: 65},
+            {id: "20241057", name: "朱鑫旸", daily: 82, exam: 48, total: 65},
+            {id: "20241074", name: "胡雨强", daily: 69, exam: 65, total: 67},
+            {id: "20241616", name: "王昊", daily: 79, exam: 76, total: 77},
+            {id: "20241622", name: "王辉明", daily: 81, exam: 76, total: 78},
+            {id: "20241676", name: "王启豹", daily: 71, exam: 31, total: 51},
+            {id: "20241697", name: "谢晓宇", daily: 78, exam: 59, total: 69},
+            {id: "20241712", name: "马婷", daily: 91, exam: 49, total: 70},
+            {id: "20241716", name: "李海洋", daily: 77, exam: 68, total: 72},
+            {id: "20241735", name: "马怡欣", daily: 79, exam: 63, total: 71},
+            {id: "20241767", name: "向铭昊", daily: 75, exam: 44, total: 59},
+            {id: "20241805", name: "冯兴海", daily: 61, exam: 69, total: 65},
+            {id: "20241830", name: "胡腾", daily: 82, exam: 73, total: 77},
+            {id: "20241924", name: "彭俊博", daily: 98, exam: 71, total: 85},
+            {id: "20241968", name: "龙安鑫", daily: 80, exam: 91, total: 86},
+            {id: "20241998", name: "黄琴", daily: 76, exam: 81, total: 78},
+            {id: "20242036", name: "张明霞", daily: 85, exam: 84, total: 84},
+            {id: "20242100", name: "黄栩冰", daily: 76, exam: 60, total: 68},
+            {id: "20242103", name: "张永旭", daily: 74, exam: 83, total: 78},
+            {id: "20242116", name: "莫富程", daily: 80, exam: 54, total: 67},
+            {id: "20242140", name: "魏钰涵", daily: 79, exam: 58, total: 68},
+            {id: "20244368", name: "廖宗明", daily: 73, exam: 50, total: 62},
+            {id: "20244396", name: "曾锐", daily: 78, exam: 23, total: 51},
+            {id: "20244415", name: "田敬阳", daily: 95, exam: 84, total: 90},
+            {id: "20244433", name: "田宇", daily: 79, exam: 72, total: 75},
+            {id: "20244462", name: "田龙", daily: 79, exam: 64, total: 71},
+            {id: "20244489", name: "马晓梅", daily: 80, exam: 77, total: 79},
+            {id: "20244508", name: "李海天", daily: 80, exam: 79, total: 79},
+            {id: "20244518", name: "相淇严", daily: 73, exam: 76, total: 75},
+            {id: "20244540", name: "马飞", daily: 76, exam: 78, total: 77},
+            {id: "20244601", name: "张文涛", daily: 88, exam: 86, total: 87},
+            {id: "20244613", name: "唐天", daily: 71, exam: 63, total: 67},
+            {id: "20244717", name: "贺凯", daily: 81, exam: 81, total: 81},
+            {id: "20244728", name: "李子云", daily: 76, exam: 60, total: 68},
+            {id: "20245268", name: "高哈夫彦", daily: 87, exam: 74, total: 81},
+            {id: "20245294", name: "彭治", daily: 65, exam: 81, total: 73}
+        ];
+
+        // DOM元素
+        const searchBtn = document.getElementById('search-btn');
+        const studentIdInput = document.getElementById('student-id');
+        const resultSection = document.getElementById('result-section');
+        const errorMessage = document.getElementById('error-message');
+        
+        // 学生信息显示元素
+        const studentName = document.getElementById('student-name');
+        const studentIdDisplay = document.getElementById('student-id-display');
+        const dailyGrade = document.getElementById('daily-grade');
+        const examGrade = document.getElementById('exam-grade');
+        const totalGrade = document.getElementById('total-grade');
+
+        // 搜索按钮事件
+        searchBtn.addEventListener('click', searchStudent);
+        studentIdInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchStudent();
+            }
+        });
+
+        function searchStudent() {
+            const id = studentIdInput.value.trim();
+            
+            if (!id) {
+                showError("请输入学号");
+                return;
+            }
+            
+            // 查找学生
+            const student = studentData.find(s => s.id === id);
+            
+            if (student) {
+                // 显示结果
+                studentName.textContent = student.name;
+                studentIdDisplay.textContent = student.id;
+                
+                // 处理特殊成绩显示
+                dailyGrade.textContent = student.daily;
+                examGrade.textContent = student.exam;
+                totalGrade.textContent = student.total;
+                
+                // 为特殊成绩添加样式
+                if (typeof student.daily !== 'number') {
+                    dailyGrade.classList.add('grade-missing');
+                } else {
+                    dailyGrade.classList.remove('grade-missing');
+                }
+                
+                if (typeof student.exam !== 'number') {
+                    examGrade.classList.add('grade-missing');
+                } else {
+                    examGrade.classList.remove('grade-missing');
+                }
+                
+                if (typeof student.total !== 'number') {
+                    totalGrade.classList.add('grade-missing');
+                } else {
+                    totalGrade.classList.remove('grade-missing');
+                }
+                
+                // 显示结果区域
+                resultSection.style.display = 'block';
+                errorMessage.style.display = 'none';
+            } else {
+                // 未找到学生
+                showError("未找到该学号的成绩信息，请检查学号是否正确");
+            }
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            resultSection.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
